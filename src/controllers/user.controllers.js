@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import {apiResponce} from "../utils/ApiResponce.js"
+import {ApiResponse} from "../utils/ApiResponce.js"
 import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import  Jwt  from "jsonwebtoken";
@@ -57,23 +57,22 @@ const registerUser = asyncHandler(async (req,resp) => {
 
   
 
-if(!avatarLocalPath){
+   if(!avatarLocalPath){
 
         throw new  ApiError(400, "avtarlocalpath  file is required ")
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
+    //   if(!avatar){
+    //     throw new  ApiError(400, "avtar file is required ");
 
-    
-    
-    if(!avatar){
-        throw new  ApiError(400, "avtar file is required ");
+    // }
 
-    }
+    // console.log(avatar.files);
 
      const user = await User.create({
         fullname,
-        avatar: avatar.url,
+        avatar: avatar?url:"",
         email,
         password,
         username: username,
@@ -88,7 +87,7 @@ if(!avatarLocalPath){
     }
 
     return resp.status(201).json(
-        new apiResponce(200,createdUser,"user register successfully")
+        new ApiResponse(200,createdUser,"user register successfully")
     )
 
 
@@ -156,14 +155,14 @@ const loginUser = asyncHandler(async(req,resp) => {
    // send cookie
 
 
-   const {email,username,password} = req.body;
+   const {email,password} = req.body;
    console.log(email);
-   if(!username && !email){
+   if(!email && !password){
     throw new ApiError(400,'username or email is required')
    }
 
    const user = await User.findOne({
-    $or:[{username},{email}]
+    $or:[{password},{email}]
    })
 
    if(!user){
@@ -189,7 +188,7 @@ const loginUser = asyncHandler(async(req,resp) => {
    .cookie("accessToken",accessToken,options)
    .cookie("refreshToken",refreshToken,options)
    .json(
-     new apiResponce(
+     new ApiResponse(
         200,
         {
             user:loggedInUser,accessToken,refreshToken
@@ -223,7 +222,7 @@ const logoutUser = ( async (req,resp) => {
    return resp.status(200)
     .clearCookie("accessToken",options)
     .clearCookie("refreshToken",options)
-    .json(new apiResponce(200,{},"user logged Out"))
+    .json(new ApiResponse(200,{},"user logged Out"))
 
 })
 
@@ -242,7 +241,7 @@ const Changepassword = asyncHandler(async(req,resp) => {
 
     return resp
     .status(200)
-    .json(new apiResponce(200,{},"password changed successfully"))
+    .json(new ApiResponse(200,{},"password changed successfully"))
 })
 
 const updateAccountDetails  = asyncHandler(async(req,resp) => {
@@ -266,7 +265,7 @@ const updateAccountDetails  = asyncHandler(async(req,resp) => {
     return resp
     .status(200)
     .json(
-        new apiResponce(200,req.user,"Account details update successfully")
+        new ApiResponse(200,req.user,"Account details update successfully")
     )
     // .json(new ApiResponse(200,user,"Account details update successfully"))
 })
@@ -296,7 +295,7 @@ const updateUserAvatar = asyncHandler(async(req,resp) => {
     return resp
     .status(200)
     .json(
-        new apiResponce(200,req.user,"coverImage updated  successfully")
+        new ApiResponse(200,req.user,"coverImage updated  successfully")
     )
 })
 
